@@ -1,72 +1,7 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# Dependencies
-node_modules/
-*.pnp
-.pnp.js
-
-# Expo
-.expo/
-dist/
-!dist/*.md5
-!dist/*.md
-!dist/*.zip
-web-build/
-
-# Native
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# Debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# Local env files
-.env*.local
-
-# TypeScript
+node_modules
+.next
+out
 *.tsbuildinfo
-
-# Logs
-logs/
-*.log
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Temporary files
-tmp/
-temp/
-
-# Build artifacts
-*.apk
-*.aab
-*.ipa
-
-# EAS
-.easignore
-
-# OS generated files
-Thumbs.db
-
-# React Native
-android/
-ios/
-
-# Expo managed workflow
-.expo-shared/
+next-env.d.ts
+.vercel
+.DS_Store
