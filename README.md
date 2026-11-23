@@ -1,92 +1,86 @@
 # AdSight
 
-**See how advertisers can target you, and why.**
+**Understand what your advertising data says about how advertisers can target you.**
 
-AdSight is an open source web app. You upload the data exports you already
-have from Google, Meta (Facebook and Instagram), TikTok, LinkedIn and others,
-and it analyses them in your browser to show how, why, when and where ads
-reach you. It works on your real data. Nothing is simulated.
+AdSight is an open-source, local-first web app for analysing personal data exports from Google, Meta (Facebook and Instagram), TikTok, and LinkedIn. It processes files in your browser and shows the advertising interests, audience categories, advertisers, and activity patterns present in those exports.
 
-## Privacy
+AdSight works from the data you provide. It does not simulate findings or claim that an export proves why a specific ad was shown.
 
-- Static site. There is no backend, so there is nothing that could receive,
-  log or store your data.
-- Analysis runs in a web worker in your browser tab.
-- A strict Content Security Policy (see `vercel.json`) blocks all outside
-  network connections from the page.
-- You choose what to upload, behind an explicit consent step. There is no
-  background capture, scraping, or credential collection.
-- Closing the session, or using the erase control, clears everything.
+## Privacy by design
 
-These describe how the app is built, not a legal certification. Check the
-network tab yourself; the code is here to read.
+- The app is a static site with no application backend or database.
+- Analysis runs locally in a browser Web Worker.
+- The Content Security Policy in `vercel.json` blocks outbound network connections from the app.
+- You choose which exports to upload through an explicit consent step.
+- There is no background collection, scraping, or credential collection.
+- Closing the session or using the erase control clears the session data.
 
-## What it shows
+These are implementation details, not a legal certification. You can inspect the source and verify network behaviour yourself.
+
+## What AdSight shows
 
 - Advertisers and ad topics found in your exports, with counts and dates.
-- Interest and audience categories (category, sub-category, sub-sub-category).
-- Devices, platforms and timing patterns where the export contains them.
-- The evidence behind each finding, so you can see what it came from.
-- A downloadable report of the full analysis.
+- Interest and audience categories, including their taxonomy hierarchy.
+- Devices, platforms, and timing patterns when the export contains them.
+- Evidence behind findings, including where each signal came from.
+- A downloadable HTML or JSON report.
 
-### What counts as evidence
-
-AdSight separates three kinds of statements:
+### Evidence labels
 
 | Label | Meaning |
 | --- | --- |
-| **Stated** | The platform export says it directly. |
-| **Observed** | Seen in your data, such as an advertiser that uploaded your details. |
-| **Inferred** | Calculated by AdSight from observed signals. |
+| **Stated** | The platform export states this directly. |
+| **Observed** | The information appears in your data, such as an advertiser that uploaded your details. |
+| **Inferred** | AdSight derives this from observed signals. |
 
-No export explains why one specific ad appeared. Where a "why" is an
-inference, it is labelled as one.
+An export does not explain why one particular ad appeared. AdSight labels inferences and does not present them as platform-confirmed explanations.
 
 ## Supported exports
 
-Parsers exist for Google (including YouTube), Meta (Facebook and Instagram),
-TikTok and LinkedIn. Amazon and other platforms are not parsed yet.
-Step-by-step instructions for requesting each export are in
-`src/lib/guides.ts`.
+Parsers are available for Google (including YouTube), Meta (Facebook and Instagram), TikTok, and LinkedIn. Amazon and other platforms are not currently supported. Export instructions are maintained in `src/lib/guides.ts`.
 
-## Development
+## Run locally
 
-Requirements: Node.js 22 or newer, npm.
+Requirements: Node.js 22 or newer and npm.
 
 ```bash
-git clone https://github.com/amalrn98/AdSight-Android-App.git
-cd AdSight-Android-App
-npm install
+git clone https://github.com/amalrn98/AdSight-Analytics.git
+cd AdSight-Analytics
+npm ci
 npm run dev
 ```
 
-Scripts:
+Available checks:
 
 ```bash
-npm run typecheck   # tsc --noEmit
-npm test            # vitest
-npm run build       # static export to out/
+npm run typecheck
+npm test
+npm run build
 ```
 
-Deploys to Vercel as a static Next.js site (`output: "export"`).
+The production build is a static Next.js export in `out/` and can be deployed to a static host.
 
-## Structure
+## Project structure
 
 ```text
 src/
   app/          Next.js app shell and global styles
-  components/   UI: upload flow, results, charts, report dialog
-  lib/          Parsers, classification, taxonomy, analysis engine, report
-  workers/      Web worker that runs the analysis off the main thread
+  components/   Upload flow, results, charts, and report dialog
+  lib/          Parsers, classification, taxonomy, analysis engine, and reports
+  workers/      Web Worker for browser-side analysis
 tests/          Engine tests and fixtures
 ```
 
 ## Contributing
 
-Parsers for more platforms are the most useful contribution. A parser reads
-one export format and returns normalised signals; see `src/lib/parsers/` and
-add a fixture in `tests/fixtures/`.
+Contributions are welcome, especially parsers for additional platform exports, representative fixtures, and tests. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). To report a security issue, see [SECURITY.md](SECURITY.md).
+
+## Maintainer
+
+AdSight is created and maintained by [Amal Nair](https://github.com/amalrn98).
 
 ## License
 
-Apache License 2.0. See `LICENSE`.
+Apache License 2.0. See [LICENSE](LICENSE).
