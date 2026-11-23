@@ -3,7 +3,7 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Heatmap, MonthBars, Sunburst } from "../components/charts";
 import { MECHANISM_TEXT, STRENGTH_LABEL, WEEKDAYS, fmtDate, hourLabel, pct } from "./format";
-import { PLATFORM_LABEL, type Analysis, type PlatformId } from "./types";
+import { PLATFORM_LABEL, type Analysis, type CategoryNode, type PlatformId } from "./types";
 
 export interface ReportOptions {
   includeSensitive: boolean;
@@ -40,6 +40,36 @@ export function redactForReport(a: Analysis, o: ReportOptions): Analysis {
         e.text = "(hidden)";
         e.matched = "(hidden)";
         delete e.note;
+      }
+    }
+
+    // An advertiser with no targeting method in the export is only known from the text of ads you saw or clicked,
+    // so its name (and the topics guessed from that name) is evidence text. Advertisers the platform itself lists keep their names.
+    c.advertisers = c.advertisers.map((r) => (r.methods.length ? r : { ...r, name: "(hidden)", categories: [] }));
+
+    // A platform label AdSight could not classify is its own topic name, but it is also the evidence text.
+    // Replace the label in the node's name, path and id (the id is also embedded in evidence ids).
+    const alias = new Map<string, string>();
+    for (const n of Object.values(c.nodes)) if (n.unmapped) alias.set(n.id, `platform-labelled/label-${alias.size + 1}`);
+    if (alias.size) {
+      const nodes: Record<string, CategoryNode> = {};
+      for (const [id, n] of Object.entries(c.nodes)) {
+        const to = alias.get(id);
+        if (to) {
+          n.id = to;
+          n.name = `Platform label ${to.slice(to.lastIndexOf("-") + 1)}`;
+          n.path = [...n.path.slice(0, -1), n.name];
+        }
+        n.children = n.children.map((ch) => alias.get(ch) ?? ch);
+        nodes[to ?? id] = n;
+      }
+      c.nodes = nodes;
+      const tag = ":platform-labelled/";
+      for (const n of Object.values(c.nodes)) {
+        for (const e of n.evidence) {
+          const at = e.id.indexOf(tag);
+          if (at >= 0) e.id = `${e.id.slice(0, at + 1)}${alias.get(e.id.slice(at + 1)) ?? e.id.slice(at + 1)}`;
+        }
       }
     }
   }
