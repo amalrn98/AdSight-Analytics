@@ -1,40 +1,42 @@
 # AdSight Product Direction
 
-AdSight helps people understand what advertising interests can be inferred from data they choose to provide.
+AdSight is an open source web app that shows people how and why ads are
+targeted at them, using the data exports they already have from social and
+search platforms.
 
-## Current direction
+## Direction
 
-The V2 rebuild is focused on a private, local-first, evidence-based experience:
+- Real analysis of real exports (Google, Meta, TikTok, LinkedIn, more to
+  come). No simulated ads.
+- Voluntary and permissioned. The user chooses what to upload and consents
+  first. No background capture, scraping, or credential collection.
+- Nothing is stored. Analysis runs in the browser, and everything is gone
+  when the session ends or the user erases it.
+- Mostly frontend. A static site with no backend, deployed on Vercel.
+- Every finding shows its evidence and is labelled stated, observed or
+  inferred, so the app never claims more than the export supports.
 
-- User-provided profile data and imports remain local to the device.
-- AdSight generates deterministic estimates from observed signals.
-- Every inference should expose its supporting evidence, confidence, data quality, and uncertainty.
-- Platform context is modeled explicitly without claiming access to private advertiser targeting systems.
-- Storage is being migrated to encrypted SQLite with the database key protected by the platform secure storage layer.
+## What the user gets
 
-## First test milestone
+- A detailed breakdown of advertisers, interests and audiences found in
+  their data, with categories, sub-categories and sub-sub-categories.
+- The how, why, when and where behind each finding, as far as the exports
+  allow.
+- A full dashboard and a downloadable report.
 
-The first production-grade test candidate is intentionally narrow:
+## Next
 
-1. Fresh install and consent.
-2. Create or import a user profile.
-3. Store the data locally.
-4. Generate platform-specific inferences.
-5. Inspect the evidence behind an inference.
-6. Restart the app and confirm persistence.
-7. Delete/reset local data and confirm removal.
+1. Deploy the current build to Vercel.
+2. Add parsers for more platforms (Amazon first).
+3. Expand test fixtures for each parser.
+4. Cross-platform view: the same advertiser or interest seen across
+   several exports.
+5. Plain-language explanations of what each export type can and cannot show.
 
-## Planned after the first test
+## Boundaries
 
-- Complete migration of remaining V1 screens to the V2 storage and inference model.
-- Robust import normalization and provenance tracking.
-- What changed and What if experiences.
-- Prediction history and comparison.
-- Privacy Center with export and deletion controls.
-- Deterministic model fixtures and evaluation before making stronger accuracy claims.
+AdSight does not scrape other apps, intercept network traffic, or use
+private advertising APIs. It reports what is in the data the user provides
+and labels anything it infers.
 
-## Product boundaries
-
-AdSight does not scrape other apps, intercept network traffic, use Accessibility APIs for surveillance, or access private advertising APIs. It estimates what could be inferred from the data available to AdSight.
-
-This document is intentionally a product direction document, not a claim that every planned feature is already complete.
+This is a direction document, not a claim that every item above is done.
