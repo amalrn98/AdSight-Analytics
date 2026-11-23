@@ -73,3 +73,57 @@ describe("report evidence redaction", () => {
     expect(JSON.stringify(a)).toContain(SECRET_MATCHED);
   });
 });
+
+describe("report redaction of advertiser names and platform labels", () => {
+  const AD = "ZQ7ADVERTISER Corp";
+  const LABEL = "Zorblaxq7 Quuxfutures";
+  const LISTED = "Listed Co";
+
+  const data = () => {
+    const parsed = emptyOutput();
+    const base = { platform: "facebook" as const, ts: Date.UTC(2024, 9, 2, 10), source: "ads/ads_viewed.json" };
+    parsed.signals.push({ ...base, id: "s-ad", kind: "ad-view", basis: "observed", text: AD });
+    parsed.signals.push({ ...base, id: "s-label", kind: "stated-interest", basis: "stated", text: LABEL });
+    parsed.advertisers.push({ platform: "facebook", name: LISTED, methods: ["listed"], source: "ads/advertisers.json" });
+    return analyze(parsed, { timezone: "UTC", now: Date.UTC(2024, 10, 1) });
+  };
+  const both = (o: ReportOptions) => {
+    const redacted = redactForReport(data(), o);
+    return { json: JSON.stringify(redacted), html: buildReportHtml(redacted, o), redacted };
+  };
+
+  it("test data really produces an ad-only advertiser and an unmapped platform label", () => {
+    const a = data();
+    expect(a.advertisers.find((r) => r.name === AD)?.methods).toEqual([]);
+    expect(Object.values(a.nodes).some((n) => n.unmapped && n.name === LABEL)).toBe(true);
+  });
+
+  it("hides ad-derived advertiser names and platform label names when evidence text is off", () => {
+    const { json, html } = both(opts({ includeEvidenceText: false }));
+    for (const out of [json, html]) {
+      expect(out).not.toContain("ZQ7ADVERTISER");
+      expect(out).not.toContain("Zorblaxq7");
+      expect(out.toLowerCase()).not.toContain("zorblaxq7");
+    }
+  });
+
+  it("keeps advertisers the platform itself lists, and keeps the topic tree consistent", () => {
+    const { json, html, redacted } = both(opts({ includeEvidenceText: false }));
+    expect(json).toContain(LISTED);
+    expect(html).toContain(LISTED);
+    expect(html).toContain("Platform label 1");
+    const ids = Object.keys(redacted.nodes);
+    for (const n of Object.values(redacted.nodes)) {
+      expect(ids).toContain(n.id);
+      for (const ch of n.children) expect(ids).toContain(ch);
+    }
+  });
+
+  it("leaves both unchanged when evidence text is on", () => {
+    const { json, html } = both(opts({ includeEvidenceText: true }));
+    for (const out of [json, html]) {
+      expect(out).toContain("ZQ7ADVERTISER");
+      expect(out).toContain("Zorblaxq7");
+    }
+  });
+});
