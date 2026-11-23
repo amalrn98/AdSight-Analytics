@@ -32,7 +32,17 @@ export function redactForReport(a: Analysis, o: ReportOptions): Analysis {
   } else {
     c.logins = c.logins.map((l) => ({ ...l, ip: undefined }));
   }
-  if (!o.includeEvidenceText) for (const n of Object.values(c.nodes)) for (const e of n.evidence) e.text = "(hidden)";
+  if (!o.includeEvidenceText) {
+    // Everything on an evidence item that comes from the user's own searches, videos or ads:
+    // the text, the keyword that matched it (which is usually a phrase from that text), and the extra detail line.
+    for (const n of Object.values(c.nodes)) {
+      for (const e of n.evidence) {
+        e.text = "(hidden)";
+        e.matched = "(hidden)";
+        delete e.note;
+      }
+    }
+  }
   return c;
 }
 
@@ -60,7 +70,7 @@ export function buildReportHtml(a: Analysis, o: ReportOptions): string {
 
   const topicHtml = topics
     .map((n) => {
-      const ev = n.evidence.slice(0, 4).map((e) => `<li><span class="chip ${e.basis}">${e.basis === "stated" ? "Platform stated" : "Observed"}</span> ${esc(e.text.slice(0, 120))} <small>${esc(PLATFORM_LABEL[e.platform])}, ${esc(fmtDate(e.ts, tz))}, matched on "${esc(e.matched)}"</small></li>`).join("");
+      const ev = n.evidence.slice(0, 4).map((e) => `<li><span class="chip ${e.basis}">${e.basis === "stated" ? "Platform stated" : "Observed"}</span> ${esc(e.text.slice(0, 120))} <small>${esc(PLATFORM_LABEL[e.platform])}, ${esc(fmtDate(e.ts, tz))}${o.includeEvidenceText ? `, matched on "${esc(e.matched)}"` : ""}</small></li>`).join("");
       return `<div class="topic"><h3>${esc(n.name)} <span class="chip ${n.origin}">${n.origin === "stated" ? "Platform stated" : "Inferred"}</span> <span class="muted">${esc(STRENGTH_LABEL[n.strength])}, ${pct(n.score)}</span></h3>
 <small>${esc(n.path.join(" > "))}${n.sensitive ? ` (sensitive: ${esc(n.sensitive)})` : ""}</small>
 <p><b>How:</b> ${n.mechanisms.map((m) => esc(MECHANISM_TEXT[m].title)).join("; ")}. <b>Where:</b> ${esc(n.platforms.map((p) => PLATFORM_LABEL[p]).join(", "))}. <b>When:</b> ${n.firstSeen ? `${esc(fmtDate(n.firstSeen, tz))} to ${esc(fmtDate(n.lastSeen, tz))}` : "platform statements are undated"}${n.peakHour !== undefined ? `; most active ${esc(WEEKDAYS[n.peakWeekday ?? 0])}s around ${hourLabel(n.peakHour)}` : ""}.</p>
